@@ -31,3 +31,20 @@
 .cproject
 .project
 
+#bin folder
+bin
+
+#kernel module temp files
+driver/.edge-detect-km.ko.cmd
+driver/.edge-detect-km.mod.o.cmd
+driver/.edge-detect-km.o.cmd
+driver/Module.symvers
+driver/edge-detect-km.ko
+driver/edge-detect-km.mod.c
+driver/modules.order
+
+# Others
+.settings/
+Module.symvers
+app/*.P
+modules.order

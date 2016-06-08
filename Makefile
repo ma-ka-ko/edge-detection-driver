@@ -1,6 +1,7 @@
+SHELL = /bin/bash
 .PHONY: app driver
 
-all : app driver
+all : driver app
 	@echo
 	@echo "done..."	
 app:
@@ -16,7 +17,7 @@ driver:
 	@echo "***************************************************"
 	@echo "**  Making $@     				 **"
 	@echo "***************************************************"
-	$(MAKE) -C $@ #> log_$@.txt
+	pushd $@ &&	$(MAKE) &&	popd
 
 
 clean:

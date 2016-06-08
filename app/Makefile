@@ -12,8 +12,11 @@ LIBS += -L$(LIB)
 
 all: $(BIN)/$(EXE_NAME)
 
-$(BIN)/$(EXE_NAME): $(OBJS) 
+$(BIN)/$(EXE_NAME): $(BIN) $(OBJS) 
 	$(CXX) -o $@ $(OBJS) $(LIBS)
+	
+$(BIN):
+	mkdir $(BIN)
 
 include include.mk
 
