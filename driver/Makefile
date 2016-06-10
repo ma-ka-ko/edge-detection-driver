@@ -11,7 +11,7 @@ clean:
 install:
 	echo -n "Module: insmod edge-detect-km.ko : "
 	insmod edge-detect-km.ko 
-#	chown root:root /dev/edge
+	chown root:root /dev/edge
 	chmod 666 /dev/edge
 	
 uninstall:

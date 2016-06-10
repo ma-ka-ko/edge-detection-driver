@@ -11,10 +11,13 @@
 MODULE_AUTHOR("Oscar A Gomez");
 MODULE_LICENSE("GPL v2");
 
+#define MAX_JPEG_SIZE 1024*1024
 //static dev_t devno = MKDEV(233,0);
-int edge_major = -1;
-int edge_minor = 0;
-char * edge_name = "edge";
+static int edge_major = -1;
+static int edge_minor = 0;
+static char * edge_name = "edge";
+
+char  buffer[MAX_JPEG_SIZE];
 
 
 int edge_open(struct inode *inode, struct file *filp)
@@ -23,29 +26,49 @@ int edge_open(struct inode *inode, struct file *filp)
 	return 0;
 }
 
+
 long edge_ioctl(struct file *filp, unsigned int iocmd, unsigned long arg)
 {
-	printk("my edge close\n");
+	printk("my edge ioctl: %d \n", iocmd);
 	return -ENOTTY;
 }
 
 ssize_t edge_read(struct file *filp, char __user *buf, size_t n, loff_t *fpos)
 {
-	char mbuf[] = {'a','b','c','d'};
+	size_t nsize = n;
+	size_t not_written;
 
-	copy_to_user(buf, mbuf, 4);
-	return 4;
+	printk("my edge read %lu \n", n);
+	if(n>MAX_JPEG_SIZE) nsize = MAX_JPEG_SIZE;
+	not_written = copy_to_user(buf, buffer, nsize);
+	if (not_written != 0 )
+	{
+			printk( "unable to send all info to user, missing %lu \n", not_written);
+			return nsize - not_written;
+		}
+	printk("Buffer: %s",buffer);
+	return nsize;
 }
 
 
 static ssize_t edge_write(struct file * file, const char __user * buf, size_t count, loff_t *ppos)
 {
+	size_t not_read;
+	printk("my edge write %lu \n", count);
+	not_read = copy_from_user(buffer,buf,count);
+	if (not_read != 0 )
+	{
+		printk( "unable to receive all info from user, missing %lu\n", not_read);
+		return count - not_read;
+	}
+	printk("Buffer: %s",buffer);
 	return count;
 }
 
 
 int edge_release(struct inode *inode, struct file *filp)
 {
+	printk("my edge release \n");
 	return 0;
 }
 
@@ -62,6 +85,9 @@ static struct class *edge_class;
 
 static int __init edge_init(void)
 {
+	printk(KERN_EMERG "Hallo driver ... \n" );
+
+	memset(buffer,'d',MAX_JPEG_SIZE);
 
 	// get dynamic major num
 	edge_major = register_chrdev(0,"edge",&fops);
