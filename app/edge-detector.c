@@ -30,7 +30,7 @@ void writeFile(char* filename, char * buffer, ssize_t length)
 	int fd;
 	ssize_t bytes;
 	printf("Saving to file %s\n", filename);
-	fd = open(filename, O_CREAT|O_WRONLY, 0770);
+	fd = open(filename, O_CREAT|O_WRONLY, 0660);
 	if(fd == -1)
 	{
 			printf("Could not open file for writting: %s\n",strerror(errno));
@@ -65,28 +65,16 @@ int main(int argc, char *argv[])
 	buffer = malloc(length);
 	memset(buffer,0,length);
 	bytes = read(fp,buffer,length);
-	writeFile(outfile,buffer,length);
+	if(bytes == -1)
+	{
+		printf("Could not read from driver: %s\n",strerror(errno));
+	}
+	else
+	{
+		writeFile(outfile,buffer,length);
+	}
 	free(buffer);
 
-/*
-	int i=0;
-	while(i<11)
-	{
-		memset(buffer,65+i,50);
-
-
-
-
-		if(bytes  < 0)
-		{
-			printf("Error in buffer read\n");
-			exit(1);
-		}
-		printf("\n Buffer: %s\n" , buffer);
-		i++;
-
-	}
-*/
 	close(fp);
 	return 0;
 }
