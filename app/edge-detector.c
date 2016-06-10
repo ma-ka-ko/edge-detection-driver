@@ -6,6 +6,8 @@
 #include<string.h>
 #include<unistd.h>
 #include<errno.h>
+#include <sys/ioctl.h>
+#include "../driver/edge-detect-algo.h"
 
 char* loadFile( char* filename, size_t * length)
 {
@@ -46,6 +48,35 @@ void writeFile(char* filename, char * buffer, ssize_t length)
 	return ;
 }
 
+void setAlgorithm(EdgeDetectAlgorithm_T algo, int fp)
+{
+	int result = -1;
+
+	result = ioctl(fp,SET_ALGO,algo);
+	if(result == -1)
+	{
+		printf("Could not set algorithm: %s\n",strerror(errno));
+	}
+
+}
+
+
+void setWindowSize(int x, int y, int fp)
+{
+	int result = -1;
+	int * dim = malloc(2*sizeof(int));
+	dim[0] = x;
+	dim[1] = y;
+
+	result = ioctl(fp,SET_MASK_SIZE,dim);
+	if(result == -1)
+	{
+		printf("Could not set algorithm: %s\n",strerror(errno));
+	}
+
+}
+
+
 int main(int argc, char *argv[])
 {
 	char * buffer;
@@ -54,13 +85,21 @@ int main(int argc, char *argv[])
 	char * filename = argv[1];
 	char * outfile = argv[2];
 	int fp;
+	EdgeDetectAlgorithm_T algorithm = SOBEL;
 
 	buffer = loadFile( filename, &length);
 	printf("File size = %lu\n", length);
 
 	fp= open("/dev/edge",O_RDWR);
+
+	setAlgorithm(algorithm, fp);
+	setWindowSize(5, 5, fp);
+
 	bytes  = write(fp, buffer, length);
 	free(buffer);
+
+	setAlgorithm(PREWITT, fp);
+	setWindowSize(10, 10, fp);
 
 	buffer = malloc(length);
 	memset(buffer,0,length);

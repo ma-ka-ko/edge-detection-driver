@@ -7,6 +7,7 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
+#include "edge-detect-algo.h"
 
 MODULE_AUTHOR("Oscar A Gomez");
 MODULE_LICENSE("GPL v2");
@@ -20,6 +21,16 @@ static char * edge_name = "edge";
 char  buffer[MAX_JPEG_SIZE];
 static ssize_t currentOff = -1;
 static ssize_t imageSize = -1;
+static EdgeDetectAlgorithm_T algorithm = SOBEL;
+static size_t mask_x = 3;
+static size_t mask_y = 3;
+
+int apply_edge_filter(void)
+{
+	printk("Applying edge filter %d  with size of %luX%lu \n",algorithm,mask_x,mask_y);
+	//TODO: implement filter
+	return 0;
+}
 
 
 int edge_open(struct inode *inode, struct file *filp)
@@ -33,8 +44,30 @@ int edge_open(struct inode *inode, struct file *filp)
 
 long edge_ioctl(struct file *filp, unsigned int iocmd, unsigned long arg)
 {
+	int * dimensions;
 	printk("my edge ioctl: %d \n", iocmd);
-	return -ENOTTY;
+	switch(iocmd)
+	{
+	case SET_ALGO:
+		algorithm = arg;
+		printk("Set the algorithm to: %d\n", algorithm);
+		if(imageSize >0)
+			apply_edge_filter();
+		break;
+	case SET_MASK_SIZE:
+		dimensions = (int * )arg;
+		mask_x = dimensions[0];
+		mask_y = dimensions[1];
+		printk("Set the mask size to %lu X %lu\n", mask_x, mask_y);
+		if(imageSize >0)
+			apply_edge_filter();
+
+		break;
+	default:
+		return -ENOTTY;
+	}
+	return 0;
+
 }
 
 ssize_t edge_read(struct file *filp, char __user *buf, size_t n, loff_t *fpos)
@@ -74,10 +107,13 @@ static ssize_t edge_write(struct file * file, const char __user * buf, size_t co
 	if (not_read != 0 )
 	{
 		printk( "unable to receive all info from user, missing %lu\n", not_read);
+		imageSize = count - not_read;
 		return count - not_read;
 	}
 	//printk("Buffer: %s",buffer);
 	currentOff = 0;
+	imageSize = count;
+	apply_edge_filter();
 	return count;
 }
 
